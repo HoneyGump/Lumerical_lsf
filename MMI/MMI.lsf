@@ -1,0 +1,107 @@
+clear;
+#########################################################################################
+# set your simulation type
+type_simulation = 0 ; # 0 is Mode; 1 is FDTD;2 is eme
+isExport = 1; # 1 is not expoet; 2 is export;
+isRun = 0 ; # 0 is not run; 1 is run;
+ip = 17;
+
+if(type_simulation == 1){type_file='.fsp';}
+if(type_simulation == 0){type_file='.lms';}
+if(type_simulation == 2){type_file='.lms';}else{type_file='';}
+if(ip == 19)
+{
+    dir_file = "/mnt/chencheng/Lumerical/MMI_pro/";
+    addpath("/mnt/chencheng/Lumerical/MMI/");
+}
+if(ip == 17)
+{
+    dir_file = "/8000G/chencheng/Lumerical/MMI_pro/";
+    addpath("/8000G/chencheng/Lumerical/MMI/");
+}
+if(ip == 0)
+{
+    dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+    addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/Endfire_Lidar/subFunction/");
+}
+#########################################################################################
+# some setting about simulation
+x0=0;y0=0;z0=0;
+mesh_max = 40e-9;
+time_simulation = 5000e-15;
+ext_length_x = 3e-6;
+ext_length_y = 3e-6;
+ext_length_z = ext_length_y;
+mesh_accuracy = 2;
+
+#########################################################################################
+wl = 1550e-9; # wl is the wavelength ;
+l_a = ext_length_x*1;   # l_a is the "unit length" of waveguide;
+w_a = 480e-9; # w_a is the width of waveguide;
+h_a = 220e-9; # h_a is the height of Si;
+
+num_left = 1;
+num_right = 32;
+
+l_taper1 = 100e-6;    #l_taper1 is the length of the left taper;
+l_taper2 = 20e-6; #l_taper2 is the length of the right taper;
+w_taper1 = 10e-6;     #w_taper1 is the width of the left taper;
+w_taper2 = 2e-6; #w_taper2 is the width of the right taper;
+shift1 = 100e-9; #the shift position of the left taper;
+shift2 = 100e-9; #the shift position of the right taper;
+L_MMI = 230e-6; # L_MMI is the length of MMI core;
+W_MMI = num_right*w_taper2; # W_MMI is the width of MMI core;
+
+num = 51;
+temp = linspace(30,430,num)*1e-6;
+clearjobs;
+for(i_temp = 1:num)
+{
+    if(num >1)
+    {
+    L_MMI = temp(i_temp);
+    }
+    filename = "MMI_"+num2str(ip)+"_"+num2str(num_left)+"_"+num2str(num_right)+"_MoreLonger";
+    
+    len = l_taper1+l_taper2+L_MMI+2*l_a;
+    width = W_MMI+3.5e-6;
+    height = h_a+3.5e-6;
+    
+    Body_MMI;
+    save(dir_file+filename+"_"+num2str(i_temp));
+    if(num>1)
+    {
+    addjob(currentfilename);
+    }
+}
+if(isRun==1)
+{
+    if(type_simulation == 2)
+    {
+        run;
+        emepropagate;
+    }
+    else
+    {
+    runjobs;
+    
+    ######################################
+    #  analysis
+    ######################################
+    T_forward_all = matrix(num,num_right);
+    T_total_all = matrix(num,num_right);
+    
+    for(i_temp = 1:num)
+    {
+        load( filename+"_"+num2str(i_temp) );
+        expansion_results;
+        T_forward_all(i_temp,1:num_right) = T_forward;
+        T_total_all(i_temp,1:num_right) = T_total;
+    }
+    matlabsave('A_Data_'+filename,temp,T_forward_all,T_total_all);
+    }
+    ?sum(T_forward_all,2);
+    ?sum(T_total_all,2);
+}
+
+?"Everything is done.";

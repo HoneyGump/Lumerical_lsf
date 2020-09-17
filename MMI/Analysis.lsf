@@ -1,0 +1,40 @@
+ip = 17;
+
+if(ip == 19)
+{
+    dir_file = "/mnt/chencheng/Lumerical/MMI_pro/";
+    addpath("/mnt/chencheng/Lumerical/MMI/");
+}
+if(ip == 17)
+{
+    dir_file = "/8000G/chencheng/Lumerical/MMI_pro/";
+    addpath("/8000G/chencheng/Lumerical/MMI/");
+}
+if(ip == 0)
+{
+    dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+    addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/Endfire_Lidar/subFunction/");
+}
+
+#filename = "MMI_"+num2str(ip)+"1_32_test";
+filename = "MMI_" +"1_32_test";
+num =51;
+num_right = 32;
+
+######################################
+#  analysis
+######################################
+T_forward_all = matrix(num,num_right);
+T_total_all = matrix(num,num_right);
+
+for(i_temp = 1:num)
+{
+    load( filename+"_"+num2str(i_temp) );
+    expansion_results;
+    T_forward_all(i_temp,1:num_right) = T_forward;
+    T_total_all(i_temp,1:num_right) = T_total;
+}
+matlabsave('A_Data_'+filename,T_forward_all,T_total_all);
+
+?sum(T_forward_all,2);
+?sum(T_total_all,2);
