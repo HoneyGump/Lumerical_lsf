@@ -1,0 +1,66 @@
+# analysis the envelpe
+
+name_monitor = "T_all";
+#name_monitor = "Pitch";
+index_prog = 1;
+shape_prog = 1; # 1 is the plane wave; 2 is the gaussian wave
+farfield_resolution = 1000;
+farfieldfilter(0); # see https://kb.lumerical.com/en/index.html?ref_scripts_farfieldfilter.html
+f = getdata(name_monitor,"f");
+lambda = c/f;
+
+E2_near = getresult(name_monitor, "E");
+y = E2_near.y; z = E2_near.z;
+E2_near = pinch(E2_near.E2);
+
+#########################
+#       farfield2d      #
+#########################
+## E2 = farfield2d("mname", f, n, illumination, periods, index, direction);
+#E2_farfield = farfield2d(name_monitor, 1:length(f), farfield_resolution, 1, 1, 1, 1) ; 
+#theta=farfieldangle(name_monitor,1,farfield_resolution);
+#plot(theta,E2_farfield,"angle (deg)","|E|^2 far field");
+
+#########################
+#       farfield3d      #
+#########################
+# out = farfield3d("mname",f, na, nb, illumination, periodsa, periodsb, index, direction);
+E2_farfield = farfield3d(name_monitor, 1:length(f), farfield_resolution, farfield_resolution, shape_prog, 1, 1,index_prog,1) ;
+ux = farfieldux(name_monitor,1,farfield_resolution,farfield_resolution,index_prog);
+uy = farfielduy(name_monitor,1,farfield_resolution,farfield_resolution,index_prog);
+
+##############################
+# plot by asin(ux) in axis x
+image(ux,uy,E2_farfield/max(E2_farfield),"","","|E|^2 at 1 m","polar");
+plot(asin(uy)/pi*180,E2_farfield(farfield_resolution/2,1:farfield_resolution)/max(E2_farfield(farfield_resolution/2,1:farfield_resolution)),"","","phi = 90");
+plot(asin(ux)/pi*180,E2_farfield(1:farfield_resolution,farfield_resolution/2)/max(E2_farfield(1:farfield_resolution,farfield_resolution/2)),"","","phi = 0");
+##############################
+#    save some data
+#matlabsave("as_"+"W"+num2str(w_a*1e9)+"_H"+num2str(h_a*1e9)+"_"+name_monitor, y, z, E2_near, ux, uy, E2_farfield);
+#matlabsave("as_"+name_monitor, y, z, E2_near);
+##############################
+# plot by theta in axis x;
+# may be here are a small difference between asin(x) and theta
+#num_theta = farfield_resolution;
+#theta = linspace(-90,90,num_theta);
+#phi = 90;
+#E2_far_spe = farfieldspherical(E2_farfield,ux,uy,theta,phi);
+#selectfigure(2);holdon;
+#plot(theta,E2_far_spe/max(E2_far_spe));
+
+
+###############################
+## test the farfield for array
+## here we must use the monitor called "Pitch" for array
+## num of antenna is 16 at the x axis or a or na
+num_antenna = 16;
+E2_farfield = farfield3d(name_monitor, 1:length(f), farfield_resolution, farfield_resolution, shape_prog, num_antenna, 1,index_prog,1) ;
+ux = farfieldux(name_monitor,1,farfield_resolution,farfield_resolution,index_prog);
+uy = farfielduy(name_monitor,1,farfield_resolution,farfield_resolution,index_prog);
+
+image(ux,uy,E2_farfield/max(E2_farfield),"","","|E|^2 at 1 m","polar");
+plot(asin(uy)/pi*180,E2_farfield(farfield_resolution/2,1:farfield_resolution)/max(E2_farfield(farfield_resolution/2,1:farfield_resolution)),"","","phi = 90");
+selectfigure(3);
+holdon;
+plot(asin(ux)/pi*180,E2_farfield(1:farfield_resolution,farfield_resolution/2)/max(E2_farfield(1:farfield_resolution,farfield_resolution/2)),"","","phi = 0");
+holdoff;

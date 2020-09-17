@@ -1,0 +1,132 @@
+newproject;
+
+wl = 1550e-9; #wl is the wavelength ;
+d = 775e-9; #d is pitch; the distance of the waveguides;
+
+l_a = 16e-6; #l_a is the length of core;
+w_a = 400e-9; #w_a is the width of core;
+h_a = 250e-9; #h_a is the height of core;
+
+x0 = 0; y0 = 0; z0 = 0;
+len = l_a  ;
+width = w_a + wl*2;
+height = h_a + 2*wl;
+
+R_position = -500e-9;
+T_position = 250e-9;
+
+## equal to disatance of simulation region; larger ratio means far;
+#ratio = 4/5;
+#pml_layers_xr  = 16;
+#accuracy_mesh = 6; # here we don't consider the error from inner mesh;
+
+#addfdtd;
+#set("x", x0);
+#set("x span",len-600e-9);
+#set("y",y0 );
+#set("y span",width/2);
+#set("z",z0);
+#set("z span",height/1.5);
+#set("simulation time", 5e-12);
+##set("auto shutoff min", 0.001);
+#set("mesh accuracy",accuracy_mesh);
+#set("same settings on all boundaries",0);
+#set("pml layers",[8,pml_layers_xr,8,8,8,8]);
+
+
+
+
+
+
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name  );
+set("x",x0 );
+set("x span",len);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height);
+set("material","SiO2 (Glass) - Palik");
+addrect;
+set( "name", "WG" );
+set("x", x0);
+set("x span",len);
+set("y",y0 );
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+
+addfde;
+set("solver type","2D X normal");
+set("x", x0);
+set("y",y0 );
+set("y span",width/2);
+set("z",z0);
+set("z span",height/1.5);
+
+set("define y mesh by","maximum mesh step" );
+set("dy", 0.001e-6);
+set("define z mesh by","maximum mesh step" );
+set("dz", 0.001e-6);
+set("min mesh step",0.001e-6 );
+run;
+setanalysis("number of trial modes",3);
+findmodes;
+
+
+
+
+#addmesh;
+
+#set( "name", "mesh_WG" );
+#set("x", x0);
+#set("x span",len);
+#set("y",y0 );
+#set("y span",w_a+400e-9);
+#set("z",z0);
+#set("z span",h_a+200e-9);
+
+ #enable in X direction and disable in Y,Z directions
+#set("override x mesh",0);
+#set("override y mesh",1);
+#set("override z mesh",1);
+ #restrict mesh by defining maximum step size
+#set("set maximum mesh step",1);
+#set("dy",1e-9);
+#set("dz",1e-9);
+
+#num = 6;
+#temp = linspace(350e-9,600e-9,num);
+#filename ="WG3_";
+## create some new project;
+#clearjobs;
+#for(i=1:num)
+#{
+    #setnamed("WG","y span",temp(i));
+    #save( "/home/chencheng/Lumerical/MODE/WG/"+filename + num2str(i) );
+    #addjob(currentfilename);
+#}
+# run those projects;
+#runjobs;
+
+
+#for(i=1:num)
+#{
+#load(filename + num2str(i));
+##########################################################
+##       Perform the far field projection and image result
+#E2 = farfield3d("T"); # this returns |E|^2 in the far field
+#ux = farfieldux("T");
+#uy = farfielduy("T");
+
+#xres = 1080;
+#yres = xres*0.86;
+#closeall;
+#image(ux,uy,E2,"","","|E|^2 at 1 m","polar");
+#selectfigure(1);
+#pause(3);
+#exportfigure("/home/chencheng/Lumerical/MODE/WG/"+"fig"+filename + num2str(i),xres,yres);
+#}
+#?"Everything is END!";

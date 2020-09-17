@@ -1,0 +1,317 @@
+# test the envelope of single antenna
+
+clear;
+#########################################################################################
+# set your simulation type
+type_simulation = 1 ; # 0 is Mode; 1 is FDTD;2 is eme
+#isExport = 1; # 1 is not expoet; 2 is export;
+isRun = 0 ; # 0 is not run; 1 is run;
+ip = 17;
+filename_lsf_floder = "Envelope";filename_fsp_floder = filename_lsf_floder+"_pro/";filename_lsf_floder = filename_lsf_floder+"/";
+
+
+if(type_simulation == 1){type_file='.fsp';}
+if(type_simulation == 0){type_file='.lms';}
+if(type_simulation == 2){type_file='.lms';}else{type_file='';}
+if(ip == 19)
+{
+    dir_file = "/mnt/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/mnt/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 17)
+{
+    dir_file = "/8000G/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/8000G/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 0)
+{
+    dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+    addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/Endfire_Lidar/subFunction/");
+}
+#########################################################################################
+
+
+lc = 14e-6;
+w_a = 500e-9;
+h_a = 250e-9;
+wl = 1550e-9;
+pitch = wl/2;
+filename= "Envelope_IP"+num2str(ip)+"_W"+num2str(w_a*1e9)+"_H"+num2str(h_a*1e9)+"_ToAir";
+
+material_cladding = "SiO2 (Glass) - Palik";
+material_film = "Si (Silicon) - Palik";
+
+len = lc;
+width = w_a + 5e-6;
+height = h_a + 5e-6;
+
+x0=0; y0=0; z0=0;
+mesh_max = 40e-9;
+time_simulation = 5000e-15;
+mesh_accuracy = 2;
+ext_len = 6e-6;
+
+deleteall;
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name );
+set("x min",x0-lc/2);
+set("x max",x0+lc/3);
+set("y",y0);
+set("y span",width + ext_len);
+set("z",z0);
+set("z span",height + ext_len);
+set("material",material_cladding);
+set('alpha',0.2);
+
+addrect;
+rect_name = "WG_right_" ;
+set( "name", rect_name);
+set("x min",x0-lc/2);
+set("x max",x0+lc/3);
+set("y",y0  );
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material",material_film);
+
+
+############################################
+#     simulation
+############################################
+if(type_simulation == 0)
+{
+    addvarfdtd;
+    set('x0',0);set('y0',0);
+    set("test points",[ -len/2+1e-6, -width/2+1e-6; len/2-1e-6, width/2-1e-6]);
+}
+if(type_simulation == 1)
+{
+    addfdtd;
+    set("dimension",2);  #  1 = 2D, 2 = 3D
+}
+set("x",x0);
+set("x span",len - 2e-6 );
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span", height);
+set("simulation time", time_simulation);
+set("auto shutoff min", 0.0001);
+set("mesh accuracy",mesh_accuracy);
+############################################
+#           source  code
+############################################
+#add the source
+if(type_simulation == 0)
+{
+    addmodesource;
+}
+if(type_simulation == 1)
+{
+    addmode;
+    set("z",0);
+    set("z span",height-100e-9);
+}
+source_name = "source";
+set( "name", source_name );
+set("injection axis","x");
+set("x",x0-len/2+2e-6 );
+set("y",y0);
+set("y span",w_a*5);
+set("wavelength start",wl);
+set("wavelength stop",wl);
+############################################
+#           Monitor  code
+############################################
+addpower;
+set("name","T_far");
+if(type_simulation == 0)
+{
+    set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("z span",height-100e-9);
+}
+set("x",x0+lc/2-1e-6);
+set("y",y0);
+set("y span", width);
+set("z",0);
+
+addpower;
+set("name","T_near");
+if(type_simulation == 0)
+{
+    set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("z span",height-100e-9);
+}
+set("x",x0+lc/3+10e-9);
+set("y",y0);
+set("y span", width);
+set("z",0);
+
+addpower;
+set("name","Up");
+if(type_simulation == 0)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+set("x min",x0+lc/3);
+set("x max",x0+lc);
+set("y",y0);
+set("y span", width);
+set("z",h_a);
+
+addpower;
+set("name","Down");
+if(type_simulation == 0)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+set("x min",x0+lc/3);
+set("x max",x0+lc);
+set("y",y0);
+set("y span", width);
+set("z",-h_a);
+
+addpower;
+set("name","Left");
+if(type_simulation == 0)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",6);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+set("x min",x0+lc/3);
+set("x max",x0+lc);
+set("y",y0+w_a*2);
+set("z",0);
+set("z span",height-100e-9);
+
+addpower;
+set("name","Right");
+if(type_simulation == 0)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",6);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+set("x min",x0+lc/3);
+set("x max",x0+lc);
+set("y",y0-w_a*2);
+set("z",0);
+set("z span",height-100e-9);
+
+
+
+
+addpower;
+set("name","R_all");
+if(type_simulation == 0)
+{
+    set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("z span",height-100e-9);
+}
+set("x",x0-len/2+1.2e-6);
+set("y",y0);
+set("y span", width);
+set("z",0);
+
+addpower;
+set("name","Middle");
+if(type_simulation == 0)
+{
+    set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+if(type_simulation == 1)
+{
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+}
+set("x",x0);
+set("x span", len);
+set("y",y0);
+set("y span", width);
+set("z",0);
+
+
+mesh_max = 10e-9;
+addmesh;
+set("name","mesh_taper_left");
+# set dimension
+set("x",x0);
+set("x span",len);
+set("y",y0);
+set("y span",w_a*1.5);
+set("z",z0);
+set("z span",w_a*1.5);
+set("override x mesh",0);
+set("override y mesh",1);
+set("override z mesh",1);
+# restrict mesh by defining maximum step size
+set("set maximum mesh step",1);
+#set("dx",mesh_max);
+set("dy",mesh_max);
+set("dz",mesh_max);
+
+addmesh;
+set("name","mesh_taper_left");
+# set dimension
+set("x",x0+lc/3);
+set("x span",w_a*2);
+set("y",y0);
+set("y span",w_a*2);
+set("z",z0);
+set("z span",w_a*1.5);
+set("override x mesh",1);
+set("override y mesh",1);
+set("override z mesh",1);
+# restrict mesh by defining maximum step size
+set("set maximum mesh step",1);
+set("dx",mesh_max);
+set("dy",mesh_max);
+set("dz",mesh_max);
+
+addmovie;
+set("simulation type","3D");
+set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("name","H");
+set("x",x0);
+set("x span",len - 2e-6 );
+set("y",y0);
+set("y span",width);
+
+addmovie;
+set("name","v");
+set("simulation type","3D");
+set("monitor type",2);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",x0);
+set("x span",len - 2e-6 );
+set("y",y0);
+set("z",z0);
+set("z span", height);
+
+save(dir_file+filename);
+#run;
+
