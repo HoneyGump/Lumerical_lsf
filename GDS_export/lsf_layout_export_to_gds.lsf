@@ -1,0 +1,15 @@
+f=gdsopen('GDS_export.gds'); 
+# create a .gds file to write code. If the file exits, it will be overwritten.
+gdsbegincell(f,'cell_1');# create a cell named "cell_1"
+gdsaddcircle(f, 5, 0, 0, 1.5e-6);# add a circle
+gdsendcell(f);# finish "cell_1"
+gdsbegincell(f,'cell_2');# create another cell
+gdsaddpoly(f, 5, [0,0; 1.5,0; 1.2,1.3]*1e-6);# add a polygon 
+gdsaddcircle(f, 5, -3e-6, -3e-6, 1.5e-6);# add a circle 
+gdsaddrect(f, 5, -3e-6, 3e-6, 1e-6, 2e-6);# add a rectangle 
+gdsaddref(f, 'cell_1', 3e-6, -3e-6);
+# reference a structure from "cell_1"
+gdsendcell(f);# finish the current cell
+gdsclose(f);# close the current .gds file
+gdsimport('GDS_export.gds','cell_1', 5);
+# show the exported design in a layout environment
