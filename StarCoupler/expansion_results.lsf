@@ -1,0 +1,20 @@
+num_output = num_right;
+num_channels = num_output ;
+#num_output= 18 ;
+T_forward = matrix(num_channels);
+T_total = matrix(num_channels);
+
+for (i = 1:num_channels){
+    
+    ?mname = "expansion"+"T"+num2str(i);
+    
+ 
+    expansion = getresult(mname, 'expansion for T'+num2str(i));
+    ?T_forward(i) = getattribute(expansion,"T_forward");
+    T_total(i) = getattribute(expansion,"T_total");
+    
+}
+?sum(T_forward);
+
+plot(1:num_channels, T_forward, T_total, "output_waveguide number", "T");
+legend('T_forward','T_total');

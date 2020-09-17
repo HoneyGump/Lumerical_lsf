@@ -1,0 +1,62 @@
+newproject;
+
+filename = "StarCoupler_h_";
+#########################################################################################
+# set your file directory
+dir_file = "/mnt/chencheng/Lumerical/StarCoupler_pro/";
+#dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+#addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/StarCoupler");
+x0=0;y0=0;z0=0;
+ext_length_x = 8e-6;
+ext_length_y = 8e-6;
+ext_length_z = 3e-6;
+mesh_accuracy = 2;
+simulation_time = 5000e-15;
+type_simulation = 1;
+
+wl = 1550e-9;
+w_a = 480e-9;
+h_a = 220e-9;
+
+l_taper = 20e-6;
+w_taper = 2e-6;
+
+theta_input = 0;
+theta_output = 0;
+num_input = 1;
+num_output = 32; # this number should be even
+
+d = 20e-6;
+r = 182e-6;
+
+res = 100; # point number
+
+clearjobs;
+num = 1;
+temp = linspace(0.5,1.5,num);
+for(i_temp = 1:num)
+{
+    deleteall;
+    theta_range = (num_output-1)*w_taper/2/r/pi*180*2 +1;  
+    
+    len = 2*d+r;
+    width = sin((theta_range/2)*pi/180)*r*2 + 6e-6;
+    height = h_a + 2e-6;
+    
+    Body_StarCoulper_h;
+    save( dir_file+filename + num2str(i_temp) );
+    addjob(currentfilename);
+}
+runjobs;
+
+T_forward_all = matrix(num,num_output);
+T_total_all = matrix(num,num_output);
+
+for(i_temp = 1:num)
+{
+    load( filename+num2str(i_temp) );
+    expansion_results;
+    T_forward_all(i_temp,1:num_output) = T_forward;
+    T_total_all(i_temp,1:num_output) = T_total;
+}
+matlabsave('StarCoupler_h',T_forward_all,T_total_all);

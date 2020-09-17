@@ -1,0 +1,265 @@
+##############################################
+# Rectangular polygon with rounded corners
+# A rectangular polygon with each corner rounded by a radius and custom resolution.
+#
+# Input properties
+# res: number of vertices to approximate roundness by
+# index: index of refraction for dielectric
+# material: material of object
+# x span, y span: lengths of the rectangle
+# z span: height of the rectangle
+# radius: radius of rounded corner
+#
+# Tags: quadrilateral extrusion rectangular rectangle polygon rounded corners
+#
+# Copyright 2011 Lumerical Solutions Inc
+##############################################
+cladding_mat = "SiO2 (Glass) - Palik";
+film_mat = "Si (Silicon) - Palik";
+theta_start = -theta_range/2;
+theta_stop = theta_range/2;
+
+addrect;
+set('name','cladding');
+set("x",0);
+set('x span', len+ext_length_x);
+set('y',0);
+set('y span', width+ext_length_y);
+set('z',0);
+set('z span', height+ext_length_z);
+set("material",cladding_mat);
+set("alpha",0.2);
+
+
+##############################################
+# input
+theta_input_array = linspace(-theta_input*num_input/2,theta_input*num_input/2,num_input);
+for (i=1:length(theta_input_array)){
+    addrect;
+    set('y span', w_a);
+    set('x span', d+r);
+    set('z span', h_a);
+    set('first axis','z');
+    set('rotation 1',-theta_input_array(i));
+    set('x',-d/2);
+    set('y',sin(theta_input_array(i)*pi/180)*(r+d)/2);
+    set('name','Input'+num2str(i));
+    set('material',film_mat);
+}
+##############################################
+## output
+# define curve points
+V_taper = [-l_taper/2,l_taper/2,l_taper/2,-l_taper/2;w_taper/2,w_a/2,-w_a/2,-w_taper/2];
+for (i=1:num_output){
+    addrect;
+    set('name','Output'+num2str(i));
+    set('x min',0);
+    set('x max', d+r/2);
+    set('y',-(num_output-1)*w_taper/2+w_taper*(i-1) );
+    set('y span', w_a);
+    set('z span', h_a);
+    set('material',film_mat);
+    
+    ###############################################
+    ## add taper
+    #addpoly;
+    #set('name','taper'+num2str(i) );
+    #set("x",0);
+    #set("y",0);
+    #set("z span",h_a);
+    #set("vertices",V_taper);
+    #set("material",film_mat);
+    #set('first axis','z');
+    #set('rotation 1',-theta_out_array(i));
+    #set('x', cos(-theta_out_array(i)*pi/180)* (r+l_taper/2-40e-9)-r/2 );
+    #set('y', sin(-theta_out_array(i)*pi/180)*(r+l_taper/2-40e-9) );
+}
+
+
+
+selectall;
+addtogroup('In_out');
+
+
+##############################################
+# Center
+V=matrix(2,res*4);  # vertices of polygon
+##############################################
+# define curve points
+theta = linspace(theta_start*pi/180,theta_stop*pi/180,res);
+y_corner_tmp= r*sin(theta);
+x_corner_tmp= r*cos(theta);
+# add curve points to vertices
+V(1,1:res) = x_corner_tmp;
+V(2,1:res) = y_corner_tmp;
+# add polygon
+addpoly;
+set("x",-r/2);
+set("y",0);
+set("z span",h_a);
+set("vertices",V);
+set("material",film_mat);
+set('name','Polygon_right');
+##############################################
+# define curve points
+theta = linspace((theta_start+180)*pi/180,(theta_stop+180)*pi/180,res);
+y_corner_tmp= r*sin(theta);
+x_corner_tmp= r*cos(theta);
+# add curve points to vertices
+V(1,1:res) = x_corner_tmp;
+V(2,1:res) = y_corner_tmp;
+# add polygon
+addpoly;
+set("x",r/2);
+set("y",0);
+set("z span",h_a);
+set("vertices",V);
+set("material",film_mat);
+set('name','Polygon_left');
+##############################################
+# add rectangle
+addrect;
+set("x",0);
+set("y span",sin((theta_range/2)*pi/180)*r*2);
+set("y",0);
+set("x span",2*(r*cos(theta_range/2*pi/180)-r/2));
+set("z span",h_a);
+set("material",film_mat);
+set('name','core');
+unselectall;
+shiftselectpartial('Polygon');shiftselectpartial('core');set("alpha",0.35);
+addtogroup('Middle');
+
+if(type_simulation == 0)
+{
+    ##############################################
+    # simulation
+    addvarfdtd;
+    set('x',0);
+    set('x span',d+r+d/2+5e-6);
+    set('y span',width );
+    set('z span',height );
+    set("simulation time", simulation_time);
+    set("auto shutoff min", 0.0001);
+    set("mesh accuracy",mesh_accuracy);
+    set('x0',0);set('y0',0);
+    set("test points",[ -r/2-d/2, -width/2+1e-6; r/2+d/2, width/2-1e-6]);
+    
+    ############################################
+    # add source
+    addmodesource;
+    set('x',-r/2-d/2);
+    set('y span',w_a*6);
+    set("wavelength start",wl);
+    set("wavelength stop",wl);
+    
+    ############################################
+    #           Monitor  code
+    ############################################
+    #add the monitor xy plane
+    addpower;
+    set("name","profile_middle");
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",x0);
+    set("x span",len);
+    set("y",y0);
+    set("y span",width);
+    set("z",z0-h_a/2);
+    
+    for(i = 1:num_output)
+    {
+        ############################################
+        #add the monitor yz plane
+        addpower;
+        set("name","T"+num2str(i));
+        set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+        set('x',r/2+d/3 );
+        set('y',-(num_output-1)*w_taper/2+w_taper*(i-1) );
+        set("y span",w_taper);
+        set("z",0);
+        
+        
+        ############################################
+        #           Modeexpansion  code
+        ############################################
+        # add the monitor yz plane
+        #add the mode expansion left
+        addmodeexpansion;
+        set("name","expansion"+"T"+num2str(i));
+        set("monitor type","Linear Y");
+        set('x',r/2+d/3 );
+        set('y',-(num_output-1)*w_taper/2+w_taper*(i-1) );
+        set("y span",w_taper);
+        set("z",z0);
+        # set the field monitor to be used by the expansion monitor
+        setexpansion("T"+num2str(i), "T"+num2str(i));
+        # select fundamental, fundamental TE or fundamental TM mode
+        set("mode selection","fundamental mode");
+    }
+}
+
+if(type_simulation == 1)
+{
+    ##############################################
+    # simulation
+    addfdtd;
+    set('x',0);
+    set('x span',d+r+d/2+5e-6);
+    set('y span',width );
+    set('z span',height );
+    set("simulation time", simulation_time);
+    set("auto shutoff min", 0.0001);
+    set("mesh accuracy",mesh_accuracy);
+    
+    ############################################
+    # add source
+    addmode;
+    set('x',-r/2-d/2);
+    set('y span',w_a*6);
+    set("wavelength start",wl);
+    set("wavelength stop",wl);
+    
+    ############################################
+    #           Monitor  code
+    ############################################
+    #add the monitor xy plane
+    addpower;
+    set("name","profile_middle");
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",x0);
+    set("x span",len);
+    set("y",y0);
+    set("y span",width);
+    set("z",z0-h_a/2);
+    
+    for(i = 1:num_output)
+    {
+        ############################################
+        #add the monitor yz plane
+        addpower;
+        set("name","T"+num2str(i));
+        set("monitor type",3);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+        set('x',r/2+d/3 );
+        set('y',-(num_output-1)*w_taper/2+w_taper*(i-1) );
+        set("y span",w_taper);
+        set("z",0);
+        
+        
+        ############################################
+        #           Modeexpansion  code
+        ############################################
+        # add the monitor yz plane
+        #add the mode expansion left
+        addmodeexpansion;
+        set("name","expansion"+"T"+num2str(i));
+        set("monitor type","2D X-normal");
+        set('x',r/2+d/3 );
+        set('y',-(num_output-1)*w_taper/2+w_taper*(i-1) );
+        set("y span",w_taper);
+        set("z",z0);
+        # set the field monitor to be used by the expansion monitor
+        setexpansion("T"+num2str(i), "T"+num2str(i));
+        # select fundamental, fundamental TE or fundamental TM mode
+        set("mode selection","fundamental mode");
+    }
+}
