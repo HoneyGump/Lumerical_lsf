@@ -1,0 +1,39 @@
+# test for coupling when d is half wavelength
+# this is designed for testing the lab measure
+newproject;
+
+filename = "Coupling";
+#########################################################################################
+# set your file directory
+dir_file = "/8000G/chencheng/Lumerical/Coupling_pro/";
+#dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/sweep_test/";
+
+wl = 1550e-9;
+h_a = 250e-9;
+w_a = 480e-9;
+N = 16;
+d = wl/2;
+l_a = 100e-6;
+
+x0=0;y0=0;z0=0;
+ext_length_x = 8e-6; ext_length_y = 8e-6; ext_length_z = 8e-6;
+
+mesh_accuracy = 2;
+simulation_time = 5000e-15;
+
+len = l_a;
+width = w_a + d*(N-1) + 4e-6;
+height = h_a + 4e-6;
+
+pos_source = 10; 
+Body_Coupling_N;
+save( dir_file + filename);
+run;save;
+T_TF = matrix(1,N);
+mn = "expansion";
+for(i_N = 1:N)
+{
+    monitor_data = getresult(mn,"expansion for T"+num2str(i_N));
+    T_TF(i_N) = monitor_data.T_forward;
+}
+
