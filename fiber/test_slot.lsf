@@ -1,0 +1,80 @@
+# test for the slot waveguide
+x0=0;y0=0;z0=0;
+wl = 1550e-9;
+l_a = 10e-6;
+d = wl/2;
+w_a = 450e-9;
+w_strip = 60e-9;
+h_a = 250e-9;
+gap = 60e-9;
+
+
+material_film = "Si (Silicon) - Palik";
+material_cladding = "SiO2 (Glass) - Palik";
+newproject;
+deleteall;
+
+width = d*3;
+height = h_a+4e-6;
+
+addrect;
+set( "name", "SiO2" );
+set("x",x0 );
+set("x span",l_a);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height);
+set("material",material_cladding);
+
+addrect;
+set( "name", "Wg1" );
+set("x",x0 );
+set("x span",l_a);
+set("y",y0 - d/2);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material",material_film);
+addrect;
+set( "name", "Wg1_1" );
+set("x",x0 );
+set("x span",l_a);
+set("y",y0 - d/2 + w_a + gap);
+set("y span",w_strip );
+set("z",z0);
+set("z span",h_a);
+set("material",material_film);
+
+
+addrect;
+set( "name", "Wg2" );
+set("x",x0);
+set("x span",l_a);
+set("y",y0 + d/2);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material",material_film);
+addrect;
+set( "name", "Wg2_2" );
+set("x",x0);
+set("x span",l_a);
+set("y",y0 + d/2 - w_a - gap);
+set("y span",w_strip );
+set("z",z0);
+set("z span",h_a);
+set("material",material_film);
+
+addfde;
+set("solver type",  "2D x normal");
+set("x",x0);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height-1e-6);
+set("define y mesh by","maximum mesh step" );
+set("dy", 10e-9);
+set("define z mesh by","maximum mesh step" );
+set("dz", 10e-9);
+set("min mesh step",1e-9 );

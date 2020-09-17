@@ -1,0 +1,260 @@
+# test the coherence in the fiber
+clear;newproject;deleteall;
+#########################################################################################
+# set your simulation type
+type_simulation = 0 ; # 0 is Mode; 1 is FDTD;2 is eme
+#isExport = 1; # 1 is not expoet; 2 is export;
+isRun = 1 ; # 0 is not run; 1 is run;
+ip = 17;
+filename_lsf_floder = "fiber";filename_fsp_floder = filename_lsf_floder+"_pro/";filename_lsf_floder = filename_lsf_floder+"/";
+
+
+if(type_simulation == 1){type_file='.fsp';}
+if(type_simulation == 0){type_file='.lms';}
+if(type_simulation == 2){type_file='.lms';}else{type_file='';}
+if(ip == 19)
+{
+    dir_file = "/mnt/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/mnt/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 17)
+{
+    dir_file = "/8000G/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/8000G/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 0)
+{
+    dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+    addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/Endfire_Lidar/subFunction/");
+}
+#########################################################################################
+
+radius_cladding = 40.9e-6/2;
+radius_core = 3.05e-6/2;
+
+wl = 830e-9;
+n_cladding = 1.4528;
+n_core = 0.013 + n_cladding;
+n_e = 1.33;
+
+a1 = 8.49612516e6;
+b1 = 7.110078e-5;
+a2 = 0.92780469e9;
+b2 = 9.110078e-5;
+
+l_a = 50e-6;
+w_coating = 25e-6;
+l_coating = 2.5e-3;
+w_flat = 5e-6;
+l_flat = 2e-3;
+l_cone = (l_coating - l_flat)/2 + l_a;
+
+filename= "cone_fiber_";
+
+name ="coating";
+if(materialexists(name))
+{deletematerial(name);}
+mymaterial_1 = addmaterial("(n,k) Material");
+setmaterial(mymaterial_1,"name",name);
+setmaterial(name,"Refractive Index",n_e);
+setmaterial(name,"Imaginary Refractive Index",0);
+setmaterial(name, "color", [0;1;1; 0.1] );
+
+name ="cladding";
+if(materialexists(name))
+{deletematerial(name);}
+mymaterial_1 = addmaterial("(n,k) Material");
+setmaterial(mymaterial_1,"name",name);
+setmaterial(name,"Refractive Index",n_cladding);
+setmaterial(name,"Imaginary Refractive Index",0);
+setmaterial(name, "color", [1;0;1; 0.1] );
+
+name ="core";
+if(materialexists(name))
+{deletematerial(name);}
+mymaterial_1 = addmaterial("(n,k) Material");
+setmaterial(mymaterial_1,"name",name);
+setmaterial(name,"Refractive Index",n_core);
+setmaterial(name,"Imaginary Refractive Index",0);
+setmaterial(name, "color", [0.5;0;0.2; 0.2] );
+
+x0=0; y0=0; z0=0;
+##########
+# Coating
+##########
+addrect;
+set("name","Coating");
+set("material","coating");
+set("x span", l_coating);
+set("y span", w_coating);
+set("z span", w_coating);
+set("alpha", 0.5);
+set("x", x0 );
+set("y", y0 );
+set("z", z0 );
+
+##########
+# cladding
+##########
+addcustom;
+set("name","cladding_right_parabola");
+set("material",'cladding');
+x_span = sqrt((l_cone + b1)/a1 )*2;
+z_span = l_cone+b1;
+set("x",0);
+set("y",0);
+set("z",0);
+set("x span",z_span);
+set("y span",x_span);
+set("z span",x_span);
+a=4*z_span/x_span^2;
+?eqn = "sqrt( (x+" + num2str(z_span) + "/2) / " + num2str(a) +")";
+set("equation units","m");
+set("create 3D object by","revolution");
+set("equation 1",eqn);
+move(l_flat/2 + l_cone - z_span/2);
+set("alpha", 0.6);
+
+copy(-(l_flat+l_cone*2)+z_span,0,0);
+set("first axis","z");
+set("rotation 1",180);
+
+addcircle;
+set("name","Cladding_flat");
+set("material","cladding");
+set("z span", l_flat);
+set("radius", w_flat/2);
+set("alpha", 0.6);
+set("x", x0 );
+set("y", y0 );
+set("z", z0 );
+set("first axis","y");
+set("rotation 1",90);
+
+########
+# core
+########
+addcustom;
+y_span = (a2*l_cone^2 - b2)*2;
+set("name","core_right_parabola");
+set("material",'core');
+x_span = sqrt((l_cone + b2)/a2 )*2;
+z_span = l_cone+b1;
+set("x",0);
+set("y",0);
+set("z",0);
+set("x span",z_span);
+set("y span",x_span);
+set("z span",x_span);
+a=4*z_span/x_span^2;
+?eqn = "sqrt( (x+" + num2str(z_span) + "/2) / " + num2str(a) +")";
+set("equation units","m");
+set("create 3D object by","revolution");
+set("equation 1",eqn);
+move(l_flat/2 + l_cone - z_span/2);
+set("alpha", 0.6);
+
+copy(-(l_flat+l_cone*2)+z_span,0,0);
+set("first axis","z");
+set("rotation 1",180);
+
+addcircle;
+set("name","Core_flat");
+set("material","core");
+set("z span", l_flat);
+set("radius", radius_core/radius_cladding*w_flat/2);
+set("alpha", 0.6);
+set("x", x0 );
+set("y", y0 );
+set("z", z0 );
+set("first axis","y");
+set("rotation 1",90);
+
+addmesh;
+set("name","mesh_core");
+# set dimension
+set("x",x0);
+set("x span",l_flat + 2*l_cone + 10e-6);
+set("y",y0);
+set("y span",radius_core*2 + 2e-6);
+set("z",z0);
+set("z span",radius_core*2 + 2e-6);
+# enable in X direction and disable in Y,Z directions
+#set("override x mesh",1);
+set("override y mesh",1);
+set("override z mesh",1);
+# restrict mesh by defining maximum step size
+set("set maximum mesh step",1);
+mesh_max = 30e-9;
+#set("dx",mesh_max);
+set("dy",mesh_max);
+set("dz",mesh_max);
+
+
+addeme;
+type = 0; # 1 is 2D; 0 is 3D;
+set("wavelength", 830e-9);
+if(type ==1)
+{
+    set("solver type", "2D XY plane: X prop");
+}
+else
+{
+    set("solver type", "3D: X prop");
+    set("z span",w_coating - 2e-6);
+    set("mesh cells z", 60);
+}
+set("x min",x0-1.26e-3);
+set("y",y0);
+set("y span",w_coating - 2e-6);
+set("z",z0);
+set("disPlay cells",1);
+set("min mesh step", 20e-9);
+set("mesh cells y", 60);
+############################################
+# set cell properties
+set("number of cell groups",3);
+set("number of modes for all cell groups",20);
+set("group spans",[0.26e-3; l_flat; 0.245e-3]);
+set("cells",[60;1;60]);
+set("subcell method",[1;0;1]);   # 0 = none,  1 = CVCS
+###########################################
+# set up ports
+# port 1
+select("EME::Ports::port_1");
+set("use full simulation span",0);
+set("y",0);
+set("y span",w_coating);
+set("z",0);
+set("z span",w_coating);
+set("mode selection","fundamental mode");
+############################################
+# port 2
+select("EME::Ports::port_2");
+set("use full simulation span",0);#this is very important;
+set("y",0);
+set("y span",w_coating*4/5);# the width of port shouldn't too longer;
+set("z",0);
+set("z span",w_coating);
+set("mode selection","fundamental mode");
+
+addemeprofile;
+set("name","middle_profile");
+set("monitor type","2D Z-normal");
+# set dimension
+set("x",x0);
+set("x span",l_flat + 2*l_cone + 10e-6);
+set("y",y0);
+set("y span",w_coating);
+set("z",z0);
+set("x resolution", 300);
+
+
+save(dir_file + filename);
+if( isRun ==1)
+{
+run;
+emepropagate;
+"eme propagate: end";
+}
+

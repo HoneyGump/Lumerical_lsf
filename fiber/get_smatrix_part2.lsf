@@ -1,0 +1,5 @@
+s_M = getresult('EME','user s matrix' );
+s_M2 = abs(s_M)^2;
+?result = s_M2(9, 1:end-1);
+?sum(result);
+matlabsave("a_SMatrix_5_1_8_part2.mat",s_M2);

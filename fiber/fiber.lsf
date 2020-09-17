@@ -1,0 +1,181 @@
+# test the coherence in the fiber
+
+clear;newproject;deleteall;
+#########################################################################################
+# set your simulation type
+type_simulation = 1 ; # 0 is Mode; 1 is FDTD;2 is eme
+#isExport = 1; # 1 is not expoet; 2 is export;
+isRun = 0 ; # 0 is not run; 1 is run;
+ip = 17;
+filename_lsf_floder = "fiber";filename_fsp_floder = filename_lsf_floder+"_pro/";filename_lsf_floder = filename_lsf_floder+"/";
+
+
+if(type_simulation == 1){type_file='.fsp';}
+if(type_simulation == 0){type_file='.lms';}
+if(type_simulation == 2){type_file='.lms';}else{type_file='';}
+if(ip == 19)
+{
+    dir_file = "/mnt/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/mnt/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 17)
+{
+    dir_file = "/8000G/chencheng/Lumerical/"+filename_fsp_floder;
+    addpath("/8000G/chencheng/Lumerical/"+filename_lsf_floder);
+}
+if(ip == 0)
+{
+    dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+    addpath("D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/Endfire_Lidar/subFunction/");
+}
+#########################################################################################
+
+radius_cladding = 40.9e-6/2;
+radius_core = 3.05e-6/2;
+wl = 248e-9;
+n_cladding = 1.4528;
+n_core = 0.013 + n_cladding;
+Lambda = 974e-9;
+l_fiber = 14e-6;
+y_plane = 0.5e-6;
+tilt_angle = 0;
+
+theta = asin(wl/Lambda);
+theta_deg = asin(wl/Lambda)*180/pi;
+filename= "neff_fiber_"+num2str(l_fiber*1e6)+"_"+num2str(tilt_angle)+"_";
+
+name ="cladding";
+if(materialexists(name))
+{deletematerial(name);}
+mymaterial_1 = addmaterial("(n,k) Material");
+setmaterial(mymaterial_1,"name",name);
+setmaterial(name,"Refractive Index",n_cladding);
+setmaterial(name,"Imaginary Refractive Index",0);
+setmaterial(name, "color", [1;0;1; 0.1] );
+
+name ="core";
+if(materialexists(name))
+{deletematerial(name);}
+mymaterial_1 = addmaterial("(n,k) Material");
+setmaterial(mymaterial_1,"name",name);
+setmaterial(name,"Refractive Index",n_core);
+setmaterial(name,"Imaginary Refractive Index",0);
+setmaterial(name, "color", [0.5;0;0.2; 0.2] );
+
+
+height = l_fiber;
+width = radius_cladding*2 + y_plane;
+len = radius_cladding*2 + 4e-6;
+
+x0=0; y0=0; z0=0;
+mesh_max = 40e-9;
+simulation_time = 5000e-15;
+mesh_accuracy = 2;
+ext_len = 6e-6;
+
+addcircle;
+set("name","Cladding");
+set("radius", radius_cladding);
+set("z span",l_fiber+40e-6);
+set("material","cladding");
+set("first axis","y");
+set("rotation 1",tilt_angle);
+
+addcircle;
+set("name","core");
+set("radius", radius_core);
+set("z span",l_fiber+40e-6);
+set("material","core");
+set("first axis","y");
+set("rotation 1",tilt_angle);
+
+#add the simulation region;
+#addfdtd;
+#set("x", x0 );
+#set("x span",len+2e-6);
+#set("y max",radius_cladding+0.5e-6);
+#set("y min",-radius_cladding-y_plane);
+#set("z",z0);
+#set("z span", height);
+#set("simulation time", simulation_time);
+#set("auto shutoff min", 0.0001);
+#set("mesh accuracy",mesh_accuracy);
+############################################
+
+#addplane;
+#set( "name", "source_1");
+#set("injection axis","y");
+#set("x",x0);
+#set("x span", len);
+#set("y",y0-radius_cladding-y_plane );
+#set("z",z0);
+#set("z span", height);
+#set("angle theta",theta_deg);
+#set("wavelength start",wl);
+#set("wavelength stop",wl);
+#addplane;
+#set( "name", "source_2");
+#set("injection axis","y");
+#set("x",x0);
+#set("x span", len);
+#set("y",y0-radius_cladding-y_plane );
+#set("z",z0);
+#set("z span", height);
+#set("angle theta",-theta_deg);
+#set("wavelength start",wl);
+#set("wavelength stop",wl);
+############################################
+
+#addpower;
+#set("name","middle_fiber");
+#set("monitor type",6);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",x0);
+#set("x span",len);
+#set("y",y0);
+#set("z",z0);
+#set("z span",height);
+
+#addpower;
+#set("name","out_fiber");
+#set("monitor type",6);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",x0);
+#set("x span",len);
+#set("y",y0-radius_cladding);
+#set("z",z0);
+#set("z span",height);
+
+#addpower;
+#set("name","forward");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",x0);
+#set("y max",radius_cladding+0.5e-6);
+#set("y min",-radius_cladding-y_plane);
+#set("z",z0);
+#set("z span",height);
+
+#addpower;
+#set("name","middle");
+#set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",x0);
+#set("x span",len);
+#set("y max",radius_cladding+0.5e-6);
+#set("y min",-radius_cladding-y_plane);
+#set("z",z0);
+
+
+save(dir_file+filename);
+
+wl = 830e-9;
+addfde;
+set('solver type','2D Z normal');
+set("x",x0);
+set("x span", radius_cladding);
+set("y",y0);
+set("y span",radius_cladding);
+set("z", 0);
+set("define y mesh by","maximum mesh step" );
+set("dy", 10e-9);
+set("define x mesh by","maximum mesh step" );
+set("dx", 10e-9);
+set("min mesh step",1e-9 );
+findmodes;

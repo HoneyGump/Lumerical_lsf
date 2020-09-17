@@ -1,0 +1,11 @@
+# analysis the period
+
+monitor_name = "middle_fiber";
+E_data = getresult(monitor_name,"E");
+
+E2 = pinch(E_data.E2);
+x = E_data.x;
+z = E_data.z;
+
+    filename = "a_E2_14_33_fiber_p";
+    matlabsave(filename,E2,x,z);
