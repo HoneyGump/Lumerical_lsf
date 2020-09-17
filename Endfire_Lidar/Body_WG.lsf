@@ -1,0 +1,114 @@
+deleteall;
+wl = 1550e-9; #wl is the wavelength ;
+d = 775e-9; #d is pitch; the distance of the waveguides;
+
+l_a = 1400e-9; #l_a is the length of core;
+w_a = 400e-9; #w_a is the width of core;
+h_a = 250e-9; #h_a is the height of core;
+
+x0 = 0; y0 = 0; z0 = 0;
+len = l_a  ;
+width = w_a + wl*4;
+height = h_a + 2*wl;
+
+pml_layers_xr  = 16;
+accuracy_mesh = 6; # here we don't consider the error from inner mesh;
+
+R_position = -200e-9;
+T_position = 200e-9;
+
+addfdtd;
+set("x", x0);
+set("x span",len-600e-9);
+set("y",y0 );
+set("y span",width/3);
+set("z",z0);
+set("z span",height/1.5);
+set("simulation time", 5e-12);
+set("auto shutoff min", 0.0001);
+set("mesh accuracy",accuracy_mesh);
+set("same settings on all boundaries",0);
+set("pml layers",[8,pml_layers_xr,8,8,8,8]);
+set("min mesh step",0.001e-6);
+
+addmesh;
+set( "name", "mesh_WG" );
+set("x", x0);
+set("x span",len);
+set("y",y0 );
+set("y span",w_a+600e-9);
+set("z",z0);
+set("z span",h_a+300e-9);
+# enable in X direction and disable in Y,Z directions
+set("override x mesh",0);
+set("override y mesh",1);
+set("override z mesh",1);
+# restrict mesh by defining maximum step size
+set("set maximum mesh step",1);
+set("dy",1e-9);
+set("dz",1e-9);
+
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name  );
+set("x",x0 );
+set("x span",len);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height);
+set("material","SiO2 (Glass) - Palik");
+addrect;
+set( "name", "WG" );
+set("x", x0);
+set("x span",len);
+set("y",y0 );
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+
+addmode;
+set("injection axis","x");
+set("x",x0);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height );
+set("wavelength start",wl);
+set("wavelength stop",wl);
+
+addpower;
+set("name","middle");
+set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",x0);
+set("x span",len);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+addpower;
+set("name","T");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",T_position);
+set("y",0);
+set("y span",width);
+set("z",0);
+set("z span",height);
+addpower;
+set("name","T2");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",T_position);
+set("y",0);
+set("y span",w_a+600e-9);
+set("z",0);
+set("z span",h_a+300e-9);
+addpower;
+set("name","T3");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",T_position);
+set("y",0);
+set("y span",w_a);
+set("z",0);
+set("z span",h_a);
+
+

@@ -1,0 +1,9 @@
+
+monitor_data = getresult("profile_middle","field profile");
+#E = monitor_data.getattribute("E2");
+E  = monitor_data.E2;
+x = monitor_data.x;
+y = monitor_data.y;
+# plot E intensity profile
+image(x*1e6,y*1e6,E,"x (um)","y (um)","E^2 intensity");
+############################################

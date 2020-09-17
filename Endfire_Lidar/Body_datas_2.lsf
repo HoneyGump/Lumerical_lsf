@@ -1,0 +1,77 @@
+newproject;
+clear;
+closeall;
+# load angular distribution
+loaddata("test_farfield_lumerical");
+wl = 1550e-9;
+
+######################################################################   
+# user settings
+######################################################################  
+    theta_target = 0; # in degrees
+    phi_target = 0; # in degrees
+    n = 16; # number of antenna elements
+    pitch = 0.75e-6; # phased array pitch
+    y = ((1:n)-(n+1)/2)*pitch; # construction of the y array of antenna, mean is 0.
+    dB_range = 40; # max range for viewing angular distributions
+    # uncomment the appropriate amplitude weight function, or create your own
+    #amplitude_weight = 1; # uniform
+    amplitude_weight = exp( -y^2/(4*pitch)^2 ); # gaussian
+######################################################################  
+
+
+######################################################################   
+# phased array calculation
+######################################################################  
+    ux_target = sin(theta_target*pi/180)*cos(phi_target*pi/180);
+    uy_target = sin(theta_target*pi/180)*sin(phi_target*pi/180);
+    k0 = 2*pi/wl;
+    weight = amplitude_weight*exp(-1i*k0*uy_target*y);#Ithink here is sqrt(uy_target^2+ux_target^2);
+    weight_ft2 = abs(czt(weight,y,k0*uy))^2; # FT of weight function
+    weight_ft2_reshap = meshgridy(ux,weight_ft2);
+    E2_final = E2 * meshgridy(ux,weight_ft2);
+    E2_final = E2_final/max(E2_final);
+######################################################################  
+
+######################################################################   
+# angular distribution images and weight function
+######################################################################  
+    if(length(amplitude_weight)==length(y)) {
+        plot(y/pitch,amplitude_weight,"y (pitch)","amplitude weight","amplitude weight");
+        setplot("show legend",false);
+    } else {
+        ?"Amplitude weight is uniform";
+    }
+    
+    polarimage(ux,uy,E2_final,"","","|E|^2");
+    E2_final_dB_positive = 10*log10(E2_final);
+    E2_final_dB_positive = E2_final_dB_positive - max(E2_final_dB_positive) + dB_range;
+    E2_final_dB_positive(find(E2_final_dB_positive<0)) = 0;
+    polarimage(ux,uy,E2_final_dB_positive,"","","|E|^2 (dB)");
+    
+    image(ux,uy,E2_final_dB_positive);
+######################################################################   
+# different phi:
+######################################################################  
+    
+    theta = linspace(-90,90,1000);
+    phi = 0;
+    test =farfieldspherical(E2_final_dB_positive,ux,uy,theta,phi) ;
+    plot(theta,test);
+    matlabsave("phi = " + num2str(phi),ux,uy,test);
+    
+
+    phi = 90;
+    test =farfieldspherical(E2_final_dB_positive,ux,uy,theta,phi) ;
+    plot(theta,test);
+    matlabsave("phi =  " + num2str(phi),ux,uy,test);
+    
+    dB_range = 3;
+    E2_final_3dB = E2_final_dB_positive - max(E2_final_dB_positive);
+    E2_final_3dB(find(E2_final_3dB<=-3)) = -3.0;
+    
+    phi = 90;
+    test =farfieldspherical(E2_final_3dB,ux,uy,theta,phi) ;
+    plot(theta,test);
+    matlabsave("phi =  " + num2str(phi),ux,uy,test);
+    

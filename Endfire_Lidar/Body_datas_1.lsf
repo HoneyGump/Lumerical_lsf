@@ -1,0 +1,19 @@
+# Body that save some datas
+
+
+
+
+mname = "T";
+E = getresult(mname,"E");
+E_near = E.E2;
+
+farfield_resolution = 401;
+farfieldfilter(0.1); # see https://kb.lumerical.com/en/index.html?ref_scripts_farfieldfilter.html
+
+E2 = farfield3d(mname,1,farfield_resolution,farfield_resolution);
+ux = farfieldux(mname,1,farfield_resolution,farfield_resolution);
+uy = farfielduy(mname,1,farfield_resolution,farfield_resolution);
+
+image(ux,uy,E2,"","","title","polar"); 
+
+matlabsave("test_farfield",E_near,farfield_resolution,E2);

@@ -1,0 +1,36 @@
+type_MMI = 0;# 0 for 1X2 splitter; 1 for 2X2 coupler
+
+if(type_MMI == 1)
+{
+    R1 = getresult("expansion_R_left","expansion for input");
+    R1 =  R1.getattribute("T_backward");
+    R2 = getresult("expansion_R_right","expansion for input");
+    R2 =  R2.getattribute("T_backward");
+    T1 = getresult("expansion_T_left","expansion for input");
+    T1 = T1.getattribute("T_forward");
+    T2 = getresult("expansion_T_right","expansion for input");
+    T2 = T2.T_forward;#another express method;
+    ?"Reflection into the fundamental mode of    left   input waveguide is " + num2str(R1*100) + " %";
+    ?"Reflection into the fundamental mode of    right  input waveguide is " + num2str(R2*100) + " %";
+    ?"Transmission into the fundamental mode of  left  output waveguide is " + num2str(T1*100) + " %";
+    ?"Transmission into the fundamental mode of  right output waveguide is " + num2str(T2*100) + " %";
+    
+    ?"Total transmission is " + num2str((T1+T2)*100) + " %";
+}
+if(type_MMI == 0)
+{
+    R  = getresult("expansion_R","expansion for input");
+    R  =  R.getattribute("T_backward");
+    
+    T1 = getresult("expansion_T_left","expansion for input");
+    T1 = T1.getattribute("T_forward");
+    T2 = getresult("expansion_T_right","expansion for input");
+    T2 = T2.T_forward;#another express method;
+    ?"Reflection into the fundamental mode of    left   input waveguide is " + num2str(R*100) + " %";
+    ?"Transmission into the fundamental mode of  left  output waveguide is " + num2str(T1*100) + " %";
+    ?"Transmission into the fundamental mode of  right output waveguide is " + num2str(T2*100) + " %";
+    
+    ?"Total transmission is " + num2str((T1+T2)*100) + " %";
+}
+
+############################################

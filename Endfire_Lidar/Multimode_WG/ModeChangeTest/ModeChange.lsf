@@ -1,0 +1,163 @@
+newproject;deleteall;clear;
+filename = "ModeChange5";
+#########################################################################################
+# set your file directory
+dir_file = "/8000G/chencheng/Lumerical/Endfire_Lidar_pro/";
+#dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+
+save(dir_file+filename);
+
+wl = 1550e-9; # wl is the wavelength ;
+d = 775e-9; # d is the pitch of antennas;
+N = 16;
+
+x0=0;y0=0;z0=0;
+
+ext_length_x = 1e-6;
+ext_length_y = 1e-6;
+ext_length_z = ext_length_y;
+
+mesh_max = 40e-9;
+time_simulation = 10000e-15;
+mesh_accuracy = 2;
+
+
+l_a = ext_length_x*1;   # l_a is the "unit length" of waveguide;
+w_a = 500e-9; # w_a is the width of waveguide;
+h_a = 220e-9; # h_a is the height of Si;
+
+W_MMI = 2e-6*(N-1);
+W_output = 1550e-9*(N-1)/2;
+l_taper = 400e-6;
+
+len = l_a*2 + l_taper;
+height = h_a + 2e-6;
+width = W_MMI + 2e-6;
+
+taperCore  = [0,  W_MMI/2; 0,  -W_MMI/2;  l_taper, -W_output/2;  l_taper, W_output/2];
+
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name );
+set("x",x0 );
+set("x span",len + ext_length_x );
+set("y",y0);
+set("y span",width + ext_length_y );
+set("z",z0);
+set("z span",height + ext_length_z);
+set("material","SiO2 (Glass) - Palik");
+set('alpha',0.2);
+
+addfdtd;
+############################################
+set("dimension",2);  #  1 = 2D, 2 = 3D
+set("x",x0);
+set("x span",len);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span", height);
+set("simulation time", time_simulation);
+set("auto shutoff min", 0.001);
+set("mesh accuracy",mesh_accuracy);
+
+addpoly;
+set( "name", "taperCore" );
+set("x",x0-l_taper/2);
+set("y",y0);
+set("vertices",taperCore);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+
+addrect;
+set( "name", "WG_left" );
+set("x max",-l_taper/2 );
+set("x min",-l_taper/2-l_a-2e-6);
+set("y",y0);
+set("y span",W_MMI);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+
+addrect;
+set( "name", "WG_right" );
+set("x min",x0+l_taper/2);
+set("x max",x0+l_taper/2+l_a+2e-6);
+set("y",y0);
+set("y span",W_output);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+
+############################################
+#           source  code
+############################################
+#add the source
+addmode;
+source_name = "source_";
+set( "name", source_name + num2str(1) );
+set("injection axis","x");
+set("x",x0-l_taper/2-l_a/2);
+set("y",0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+set("wavelength start",wl);
+set("wavelength stop",wl);
+############################################
+
+############################################
+#           Monitor  code
+############################################
+#add the monitor xy plane
+addpower;
+set("name","profile_middle");
+set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",x0);
+set("x span",len);
+set("y",0);
+set("y span",width);
+set("z",0);
+############################################
+#add the monitor yz plane
+addpower;
+set("name","T");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",l_taper/2+l_a/2);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+#add the monitor yz plane
+addpower;
+set("name","R");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x", -l_taper/2-l_a);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+
+############################################
+#           Modeexpansion  code
+############################################
+#add the mode expansion left
+addmodeexpansion;
+set("name","expansion_output");
+set("monitor type","2D X-normal");
+set("x",l_taper/2+l_a/2);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+# set the field monitor to be used by the expansion monitor
+setexpansion("T_output", "T");
+############################################
+# select fundamental, fundamental TE or fundamental TM mode
+set("mode selection","user select");
+############################################

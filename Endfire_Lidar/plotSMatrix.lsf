@@ -1,0 +1,27 @@
+closeall;
+################################################
+S = getemesweep('S');
+# plot S21 vs group span
+s21 = S.s21;
+s31 = S.s31;
+group_span = S.group_span_3;
+################################################
+
+################################################
+plot(group_span*1e6,10*log10(abs(s31)^2+abs(s21)^2),"MMI core length (um)","Loss (dB)");
+plot(group_span*1e6, (abs(s31)^2+abs(s21)^2),"MMI core length (um)","Loss (%)");
+################################################
+
+################################################
+plot(group_span*1e6,abs(s21)^2,"MMI core length (um)","Loss");
+holdon;
+plot(group_span*1e6,abs(s31)^2,"MMI core length (um)","Loss");
+holdoff;
+################################################
+
+################################################
+plot(group_span*1e6,angle(s21),"MMI core length (um)","angle");
+holdon;
+plot(group_span*1e6,angle(s31)*180/pi,"MMI core length (um)","phase");
+holdoff;
+################################################

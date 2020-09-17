@@ -1,0 +1,107 @@
+############################################
+#         Body code 09.24.2019
+#         
+############################################
+newproject;
+# avoid to cover file that has been simulated.
+find_file = 1;# 0 is close the find the file.
+if ( find_file == 1 )
+{
+    ?fileexists(filename);
+    if (fileexists(filename))
+    {
+        message('File has benn here');
+        ##open the new wizard
+        newwizard(300,200,"File has been here!");
+        wizardoption("fontsize",20);
+        wizardoption("fieldwidth",150);
+        wizardoption("fieldheight",20);
+        wizardoption("margin",20);
+        newwizardpage("New");
+        wizardwidget("label",endl+"Input new file name, Or cancle to replace old one."+endl);
+        wizardoption("margin",50);
+        wizardwidget("string","new file name:");
+        ##get returned value;
+        out = runwizard;
+        filename_new=wizardgetdata(1);
+        killwizard;
+        ### break if the user cancelled
+        if(out==0) {
+            ?"User cancelled";
+        }
+        else
+        {
+            filename = filename_new;
+        }
+    }
+}
+save(dir_file+filename);
+
+
+
+
+Ny = max( [1,Ny] );
+if(Ny > 20) { 
+    Ny = 20;
+    ?"Maximum Ny is 20";
+}
+
+# waveguide
+addrect;
+set("name","waveguide_start");
+set("x min",-l_a);
+set("x max",0);
+set("y",0);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+
+copy;
+set("name","waveguide_end");
+set("x min",pitch*n_periods);
+set("x max",pitch*n_periods + l_a);
+
+
+for(i=1:n_periods) {
+    addrect;
+    set("name","A"+num2str(i));
+    set("x min",(i-1)*pitch);
+    set("x max",(i-1/2)*pitch);
+    set("y",0);
+    set("y span",w_a);
+    set("z",0);
+    set("z span",h_a);
+    copy;
+    set("name","B"+num2str(i));
+    set("x min",(i-1/2)*pitch);
+    set("x max",i*pitch);
+    set("y",0);
+    set("y span",width2);
+}
+
+
+material = "Si (Silicon) - Palik";
+# set material and z span for all structures
+selectall;
+set("material",material); 
+if(get("material")=="<Object defined dielectric>") 
+  { set("index",3.477); } 
+
+if(Ny > 1.1) {
+    py = ((1:Ny)-(Ny+1)/2)*ay;
+    move(0,py(1),0);
+    for(i=2:length(py)) {
+        copy(0,py(i)-py(i-1),0);
+    }
+}
+
+save;
+
+if (isExport == 2){
+    groupscope('::model');
+    selectall;
+    addtogroup(filename);
+    
+    GDS_export;
+}
+    

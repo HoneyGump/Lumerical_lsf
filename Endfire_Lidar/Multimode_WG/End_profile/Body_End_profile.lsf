@@ -1,0 +1,223 @@
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name );
+set("x min",-l_a-L_MMI/2-4e-6 );
+set("x max",L_MMI/2 + 4e-6  );
+set("y",y0);
+set("y span",width + ext_length_y*4 );
+set("z",z0);
+set("z span",height + ext_length_z*4);
+set("material","SiO2 (Glass) - Palik");
+set('alpha',0.2);
+############################################
+addfdtd;
+set("dimension",2);  #  1 = 2D, 2 = 3D
+set("x min",-l_a*2/3-L_MMI/2);
+set("x max",L_MMI/2);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span", height);
+set("simulation time", time_simulation);
+set("auto shutoff min", 0.001);
+set("mesh accuracy",mesh_accuracy);
+############################################
+
+############################################
+##add the left waveguide 1
+addrect;
+rect_name = "WG_left_";
+set( "name", rect_name + "upper" );
+set("x",x0-L_MMI/2-l_a/2);
+set("x span",l_a);
+set("y",y0);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+############################################
+##add the MMI core
+addrect;
+set( "name", "MMI_core" );
+set("x min",-L_MMI/2);
+set("x max",L_MMI/2+4e-6);
+set("y",y0);
+set("y span",W_MMI);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+############################################
+
+
+############################################
+#           source  code
+############################################
+#add the source
+addmode;
+source_name = "source_";
+set( "name", source_name + num2str(1) );
+set("injection axis","x");
+set("x",x0-L_MMI/2 -l_a/4);
+set("y",0);
+set("y span",w_a*4);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+set("wavelength start",wl);
+set("wavelength stop",wl);
+############################################
+
+############################################
+#           Monitor  code
+############################################
+#add the monitor xy plane
+#addpower;
+#set("name","profile_upper");
+#set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",(Pl2-Pl1)/2);
+#set("x span",len);
+#set("y",0);
+#set("y span",width);
+#set("z",h_a/2);
+############################################
+#add the monitor xy plane
+addpower;
+set("name","profile_middle");
+set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",x0);
+set("x span",len);
+set("y",0);
+set("y span",width);
+set("z",0);
+############################################
+##add the monitor xy plane
+#addpower;
+#set("name","profile_lower");
+#set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",(Pl2-Pl1)/2);
+#set("x span",len);
+#set("y",0);
+#set("y span",width);
+#set("z",-h_a/2);
+############################################
+#add the monitor yz plane
+#addpower;
+#set("name","profile_back");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",-len/2 +(Pl2-Pl1)/2 + 50e-9);
+#set("y",0);
+#set("y span",width);
+#set("z",0);
+#set("z span",height-100e-9);
+#############################################
+##add the monitor yz plane
+#addpower;
+#set("name","profile_p1");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",-L_MMI/2+100e-9);
+#set("y",0);
+#set("y span",width);
+#set("z",0);
+#set("z span",height-100e-9);
+#############################################
+##add the monitor yz plane
+#addpower;
+#set("name","profile_p2");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",L_MMI/2-100e-9);
+#set("y",0);
+#set("y span",width);
+#set("z",0);
+#set("z span",height-100e-9);
+############################################
+#add the monitor yz plane
+#addpower;
+#set("name","profile_output");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",len/2 + (Pl2-Pl1)/2 - 100e-9);
+#set("y",0);
+#set("y span",width);
+#set("z",0);
+#set("z span",height-100e-9);
+#############################################
+##add the monitor yz plane
+#addpower;
+#set("name","output_left1");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",L_MMI/2 + Pl2/3);
+#set("y",S2/2);
+#set("y span",S2-200e-9);
+#set("z",0);
+#set("z span",height-100e-9);
+#############################################
+##add the monitor yz plane
+#addpower;
+#set("name","output_left2");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",L_MMI/2 +  Pl2*2/3);
+#set("y",S2/2);
+#set("y span",S2-200e-9);
+#set("z",0);
+#set("z span",height-100e-9);
+############################################
+#add the monitor yz plane
+addpower;
+set("name","T_output");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x",L_MMI/2 - 1e-9);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+##add the monitor yz plane
+#addpower;
+#set("name","output_right1");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",L_MMI/2 + Pl2/3);
+#set("y",-S2/2);
+#set("y span",S2-200e-9);
+#set("z",0);
+#set("z span",height-100e-9);
+#############################################
+##add the monitor yz plane
+#addpower;
+#set("name","output_right2");
+#set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+#set("x",L_MMI/2 +Pl2*2/3);
+#set("y",-S2/2);
+#set("y span",S2-200e-9);
+#set("z",0);
+#set("z span",height-100e-9);
+############################################
+#add the monitor yz plane
+addpower;
+set("name","T_middle");
+set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+set("x", 0);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+
+############################################
+#           Modeexpansion  code
+############################################
+#add the mode expansion left
+addmodeexpansion;
+set("name","expansion_MMI_core");
+set("monitor type","2D X-normal");
+set("x",L_MMI/2 - 1e-9);
+set("y",y0);
+set("y span",width);
+set("z",0);
+set("z span",height-100e-9);
+############################################
+# set the field monitor to be used by the expansion monitor
+setexpansion("T_output", "T_output");
+setexpansion("T_middle", "T_middle");
+############################################
+# select fundamental, fundamental TE or fundamental TM mode
+set("mode selection","user select");
+############################################

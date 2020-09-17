@@ -1,0 +1,55 @@
+#####################################################                                      
+# User modification section starts here                                         用户只需修改下面这一段
+
+gds_output=filename+'.gds';    # set output GDS file name
+group_name= filename; # select the structure group to be exported
+
+# define layer properties
+layer_def=[ 1, 0e-6, 0.22e-6]; # layer number, z, z span
+layer_no=size(layer_def);
+layer_no=layer_no(1);
+
+# optional settings
+n_circle=256;  # number of sides to use for circle approximation (64 by default).
+n_ring=256;    # number of slices to use for ring approximation (64 by default).
+n_custom=256;  # number of slices to use for custom approximation (64 by default).
+n_wg=256;      # number of slices to use for waveguide approximation (64 by default).
+
+round_to_nm=1; # round the z and z span to the nearest integer of nm
+
+# End of user modification section
+#####################################################
+
+
+
+#####################################################
+# Lumerical scripts start here.
+
+# Please take care if any modifications are made!                             下面不建议改动
+
+unselectall;
+groupscope('::model');
+groupscope(group_name);
+selectall;
+MM=getnumber; # get the total number of objects inside the group
+
+f=gdsopen(gds_output); # create the GDS file
+
+# create the subcells 
+for (ii=1:MM) {
+   selectall;
+   obj_name=get('name',ii);  # get the name of each object
+   GDS_auto_export_check_type_and_create_cell;
+}
+
+# create the top cell and add the subcells 
+gdsbegincell(f,group_name);
+for (ii=1:MM) {
+   selectall;
+   obj_name=get('name',ii);
+  GDS_auto_export_add_cell_to_top;
+}
+gdsendcell(f);
+
+unselectall;
+gdsclose(f);

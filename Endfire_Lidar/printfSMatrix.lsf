@@ -1,0 +1,8 @@
+select("EME");
+s_matrix_my = getresult("EME","user s-matrix");
+s12_my = abs(s_matrix_my(1,2))^2;
+s13_my = abs(s_matrix_my(1,3))^2;
+?"s12 is  " + num2str(s12_my*100) + " %";
+?"s13 is  " + num2str(s13_my*100) + " %";
+?"Total is  " + num2str((s13_my+s12_my)*100) + " %";
+############################################

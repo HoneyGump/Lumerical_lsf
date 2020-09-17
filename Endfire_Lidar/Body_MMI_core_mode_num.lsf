@@ -1,0 +1,81 @@
+newproject;
+# avoid to cover file that has been simulated.
+find_file = 1;# 0 is close the find the file.
+if ( find_file == 1 )
+{
+    ?fileexists(filename);
+    if (fileexists(filename))
+    {
+        message('File has benn here');
+        ##open the new wizard
+        newwizard(300,200,"File has been here!");
+        wizardoption("fontsize",20);
+        wizardoption("fieldwidth",150);
+        wizardoption("fieldheight",20);
+        wizardoption("margin",20);
+        newwizardpage("New");
+        wizardwidget("label",endl+"Input new file name, Or cancle to replace old one."+endl);
+        wizardoption("margin",50);
+        wizardwidget("string","new file name:");
+        ##get returned value;
+        out = runwizard;
+        filename_new=wizardgetdata(1);
+        killwizard;
+        ### break if the user cancelled
+        if(out==0) {
+            ?"User cancelled";
+        }
+        else
+        {
+            filename = filename_new;
+        }
+    }
+}
+save(dir_file+filename);
+
+len = L_MMI + ext_length_x;
+width = W_MMI + ext_length_y;
+height = h_a + ext_length_z;
+
+addrect;
+rect_name = "SiO2";
+set( "name", rect_name );
+set("x",x0);
+set("x span",len);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height);
+set("material","SiO2 (Glass) - Palik");
+set('alpha',0.2);
+############################################
+##add the MMI core
+addrect;
+set( "name", "MMI_core" );
+set("x",x0);
+set("x span",L_MMI);
+set("y",y0);
+set("y span",W_MMI);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+############################################
+
+#add the simulation region;
+addfde;
+set("solver type",  "2D x normal");
+set("x",x0);
+set("y",y0);
+set("y span",width);
+set("z",z0);
+set("z span",height);
+set("define y mesh by","maximum mesh step" );
+set("dy", 10e-9);
+set("define z mesh by","maximum mesh step" );
+set("dz", 10e-9);
+set("min mesh step",1e-9 );
+
+save;
+run;save;
+
+

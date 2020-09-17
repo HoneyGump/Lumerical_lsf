@@ -1,0 +1,371 @@
+##############
+#
+# Body of bend for besell function
+#
+##############
+
+newproject;
+# avoid to cover file that has been simulated.
+find_file = 1;# 0 is close the find the file.
+if ( find_file == 1 )
+{
+    ?fileexists(filename);
+    if (fileexists(filename))
+    {
+        message('File has benn here');
+        ##open the new wizard
+        newwizard(300,200,"File has been here!");
+        wizardoption("fontsize",20);
+        wizardoption("fieldwidth",150);
+        wizardoption("fieldheight",20);
+        wizardoption("margin",20);
+        newwizardpage("New");
+        wizardwidget("label",endl+"Input new file name, Or cancle to replace old one."+endl);
+        wizardoption("margin",50);
+        wizardwidget("string","new file name:");
+        ##get returned value;
+        out = runwizard;
+        filename_new=wizardgetdata(1);
+        killwizard;
+        ### break if the user cancelled
+        if(out==0) {
+            ?"User cancelled";
+        }
+        else
+        {
+            filename = filename_new;
+        }
+    }
+}
+save(dir_file+filename);
+
+############################################
+#           structure  code
+############################################
+len = l_bg + 1.6*l_a ;
+width = w_hot + ext_length_y;
+height = h_a + ext_length_z;
+
+y0 = 0;
+x1= -l_bg/2;
+y1 = -w_hot/2;
+x2 = 0;
+y2 = -w_hot/2;
+x3 = 0;
+y3 = w_hot/2;
+x4 = l_bg/2;
+y4 = w_hot/2;
+
+############################################
+## add the clading;
+if(isExport != 2)
+{
+    addrect;
+    rect_name = "SiO2";
+    set( "name", rect_name );
+    
+    set("x",x0 );
+    set("x span",len + ext_length_x );
+    set("y",y0);
+    set("y span",width + ext_length_y );
+    set("z",z0);
+    set("z span",height + ext_length_z);
+    set("material","SiO2 (Glass) - Palik");
+    set('alpha',0.2);
+}
+############################################
+addrect;
+rect_name = "WG_left";
+set( "name", rect_name );
+set("x",x0-l_bg/2-l_a/2+shift_build);
+set("x span",l_a);
+set("y",y0-w_hot/2);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+############################################
+addrect;
+rect_name = "WG_right";
+set( "name", rect_name );
+set("x",x0+l_bg/2+l_a/2-shift_build);
+set("x span",l_a);
+set("y",y0+w_hot/2);
+set("y span",w_a);
+set("z",z0);
+set("z span",h_a);
+set("material","Si (Silicon) - Palik");
+############################################
+##add the bend waveguide 1
+addwaveguide;
+set("base width",w_a);
+set("base height",h_a);
+set("base angle",90);
+pole=[x1,y1; x2, y2; x3, y3; x4, y4];
+set("poles",pole);
+set("material","Si (Silicon) - Palik");
+############################################
+if(type_simulation == -1)
+{
+    if(isBend == 2)
+    {
+        addwaveguide;
+        set("name","waveguide_r");
+        set("base width",w_a);
+        set("base height",h_a);
+        set("base angle",90);
+        pole=[x1, -y1; x2, -y2; x3, -y3; x4, -y4];
+        set("poles",pole);
+        set("material","Si (Silicon) - Palik");
+        move(0,-(d_grating - w_hot));
+        ############################################
+        addrect;
+        rect_name = "WG_left_r";
+        set( "name", rect_name );
+        set("x",x0-l_bg/2-l_a/2+shift_build);
+        set("x span",l_a);
+        set("y",y0-w_hot/2-S);
+        set("y span",w_a);
+        set("z",z0);
+        set("z span",h_a);
+        set("material","Si (Silicon) - Palik");
+        ############################################
+        addrect;
+        rect_name = "WG_right_r";
+        set( "name", rect_name );
+        set("x",x0+l_bg/2+l_a/2-shift_build);
+        set("x span",l_a);
+        set("y",y0+w_hot/2-d_grating);
+        set("y span",w_a);
+        set("z",z0);
+        set("z span",h_a);
+        set("material","Si (Silicon) - Palik");
+        
+        
+    }
+}
+
+
+############################################
+#           simulation  code
+############################################
+
+if(type_simulation == 0)
+{
+    ##########################################
+    #varfdtd
+    ############################################
+    #add the simulation region;
+    addvarfdtd;
+    ############################################
+    set("x",x0);
+    set("x span",len);
+    set("y",y0);
+    set("y span",width);
+    set("z",z0);
+    set("z span", height);
+    ############################################
+    set("simulation time", time_simulation);
+    set("auto shutoff min", 0.001);
+    set("mesh accuracy",mesh_accuracy);
+    set("x0",0);
+    set("test points",[0, width/2*4/5; 0, -width/2*4/5]);
+    ############################################
+    
+    ############################################
+    #add the source
+    addmodesource;
+    source_name = "source";
+    set( "name", source_name );
+    set("injection axis","x");
+    set("x",x0-l_bg/2-l_a/2);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    #set("z",0);
+    #set("z span",height-100e-9);
+    ############################################
+    set("wavelength start",wl);
+    set("wavelength stop",wl);
+    ############################################
+    
+    ############################################
+    #           Monitor  code
+    ############################################
+    #add the monitor xz plane
+    addpower;
+    set("name","profile_middle");
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",0);
+    set("x span",len);
+    set("y",0);
+    set("y span",width);
+    set("z",0);
+    ############################################
+    #add the monitor yz plane
+    addpower;
+    set("name","T");
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",l_bg/2 + l_a/2);
+    set("y",y0 + w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    #add the monitor yz plane
+    addpower;
+    set("name","R");
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",-l_bg/2 - l_a*3/4);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    
+    ############################################
+    #           Modeexpansion  code
+    ############################################
+    #add the mode expansion left
+    addmodeexpansion;
+    set("name","expansion_R");
+    set("monitor type","Linear Y");
+    set("x",-l_bg/2 - l_a*3/4);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    ############################################
+    # set the field monitor to be used by the expansion monitor
+    setexpansion("input", "R");
+    # select fundamental, fundamental TE or fundamental TM mode
+    set("mode selection","fundamental mode");
+    ############################################
+    ############################################
+    #add the mode expansion left
+    addmodeexpansion;
+    set("name","expansion_T");
+    set("monitor type","Linear Y");
+    set("x",l_bg/2 + l_a/2);
+    set("y",y0 + w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    ############################################
+    # set the field monitor to be used by the expansion monitor
+    setexpansion("input", "T");
+    # select fundamental, fundamental TE or fundamental TM mode
+    set("mode selection","fundamental mode");
+    ############################################
+    
+    
+}
+if(type_simulation == 1)
+{
+    addfdtd;
+    ############################################
+    set("dimension",2);  #  1 = 2D, 2 = 3D
+    set("x",x0);
+    set("x span",len);
+    set("y",y0);
+    set("y span",width);
+    set("z",z0);
+    set("z span", height);
+    ############################################
+    set("simulation time", time_simulation);
+    set("auto shutoff min", 0.001);
+    set("mesh accuracy",mesh_accuracy);
+    
+    ############################################
+    #           source  code
+    ############################################
+    #add the source
+    addmode;
+    source_name = "source_";
+    set( "name", source_name + num2str(1) );
+    set("injection axis","x");
+    set("x",x0-l_bg/2-l_a/2);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    set("wavelength start",wl);
+    set("wavelength stop",wl);
+    ############################################
+    
+    ############################################
+    #           Monitor  code
+    ############################################
+    #add the monitor xy plane
+    addpower;
+    set("name","profile_middle");
+    set("monitor type",7);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",x0);
+    set("x span",len);
+    set("y",0);
+    set("y span",width);
+    set("z",0);
+    ############################################
+    #add the monitor yz plane
+    addpower;
+    set("name","T");
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",l_bg/2 + l_a/2);
+    set("y",y0 + w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ###########################################
+    #add the monitor yz plane
+    addpower;
+    set("name","R");
+    set("monitor type",5);  # 1 = point, 2 = linear x, 3 = linear y, 4 = linear z, 5 = 2D x-normal, 6 = 2D y-normal, 7 = 2D z-normal, 8 = 3D
+    set("x",-l_bg/2 - l_a*3/4);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    
+    ############################################
+    #           Modeexpansion  code
+    ############################################
+    #add the mode expansion left
+    addmodeexpansion;
+    set("name","expansion_R");
+    set("monitor type","2D X-normal");
+    set("x",-l_bg/2 - l_a*3/4);
+    set("y",y0-w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    # set the field monitor to be used by the expansion monitor
+    setexpansion("input", "R");
+    # select fundamental, fundamental TE or fundamental TM mode
+    set("mode selection","fundamental mode");
+    ############################################
+    ############################################
+    #add the mode expansion left
+    addmodeexpansion;
+    set("name","expansion_T");
+    set("monitor type","2D X-normal");
+    set("x",l_bg/2 + l_a/2);
+    set("y",y0 + w_hot/2);
+    set("y span",w_a*3);
+    set("z",0);
+    set("z span",height-100e-9);
+    ############################################
+    # set the field monitor to be used by the expansion monitor
+    setexpansion("input", "T");
+    # select fundamental, fundamental TE or fundamental TM mode
+    set("mode selection","fundamental mode");
+    ############################################
+}
+save;
+
+if (isExport == 2){
+    groupscope('::model');
+    selectall;
+    addtogroup(filename);
+    
+    GDS_export;
+}

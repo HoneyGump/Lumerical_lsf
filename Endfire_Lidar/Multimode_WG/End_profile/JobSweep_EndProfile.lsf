@@ -1,0 +1,68 @@
+newproject;
+
+filename = "EndProfile";
+#########################################################################################
+# set your file directory
+dir_file = "/8000G/chencheng/Lumerical/Endfire_Lidar_pro/JobSweep_EndProfile/";
+#dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/";
+
+wl = 1550e-9; # wl is the wavelength ;
+d = 775e-9; # d is the pitch of antennas;
+N = 16;
+
+x0=0;y0=0;z0=0;
+
+ext_length_x = 1e-6;
+ext_length_y = 1e-6;
+ext_length_z = ext_length_y;
+
+#mesh_max = 40e-9;
+time_simulation = 5000e-15;
+mesh_accuracy = 2;
+
+
+l_a = ext_length_x*1;   # l_a is the "unit length" of waveguide;
+w_a = 500e-9; # w_a is the width of waveguide;
+h_a = 220e-9; # h_a is the height of Si;
+
+L_MMI = 332e-6;
+W_MMI = 1550e-9*(N-1)/2;
+
+len = l_a + L_MMI;
+height = h_a + 2e-6;
+width = W_MMI + 2e-6;
+####################
+#    Sweep
+####################
+num = 41;
+temp = linspace(14e-6,16e-6,num);
+# create some new project;
+clearjobs;
+for(i=1:num)
+{
+    switchtolayout; deleteall; groupscope("::model");
+    L_MMI = temp(i);
+    Body_End_profile;
+    save( dir_file + filename + num2str(i) );
+    addjob(currentfilename);
+}
+# run those projects;
+runjobs;
+
+
+####################
+#    analysi
+####################
+mn = "T_output";
+for(i=1:num)
+{
+    load( filename + num2str(i));
+    monitor_data = getresult(mn,"E");
+    #E = monitor_data.getattribute("E2");
+    E  = monitor_data.E2;
+    y = monitor_data.y;
+    z = monitor_data.z;
+    # plot E intensity profile
+    image(y*1e6,z*1e6,E,"x (um)","y (um)","E^2 intensity");
+}
+

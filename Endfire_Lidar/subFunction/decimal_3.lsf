@@ -1,0 +1,14 @@
+##################
+# Function that save 3 decimal places
+# 2019.09.23
+##################
+# unit is um;
+function decimal3(x){
+    unit = 1e6;
+    inter = floor(x*unit);
+    decimal = x*unit - inter;
+    decimal = decimal*1e3;
+    decimal = floor(decimal);
+    result = inter + decimal*1e-3;
+    return result/unit;
+}

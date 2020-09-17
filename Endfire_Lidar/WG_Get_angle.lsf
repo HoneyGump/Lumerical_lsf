@@ -1,0 +1,60 @@
+newproject;
+
+Body_WG;
+
+num = 6;
+temp = linspace(350e-9,600e-9,num);
+filename ="WG5_";
+# create some new project;
+clearjobs;
+for(i=1:num)
+{
+    setnamed("WG","y span",temp(i));
+    save( "/home/chencheng/Lumerical/MODE/WG/"+filename + num2str(i) );
+    addjob(currentfilename);
+}
+
+runjobs;
+
+
+for(i=1:num)
+{
+    
+    load(filename + num2str(i));
+    
+    Ef1  = farfield3d("T"); # Ef is far field
+    ux1 = farfieldux("T");
+    uy1 = farfielduy("T");
+    
+    matlabsave("/home/chencheng/Lumerical/MODE/WG/E2_T1_datas_" + num2str(i),ux1,uy1,Ef1);
+    
+    Ef2  = farfield3d("T2"); # Ef is far field
+    ux2 = farfieldux("T2");
+    uy2 = farfielduy("T2");
+    
+    matlabsave("/home/chencheng/Lumerical/MODE/WG/E2_T2_datas_" + num2str(i),ux2,uy2,Ef2);
+    
+    Ef3  = farfield3d("T3"); # Ef is far field
+    ux3 = farfieldux("T3");
+    uy3 = farfielduy("T3");
+    
+    matlabsave("/home/chencheng/Lumerical/MODE/WG/E2_T3_datas_" + num2str(i),ux3,uy3,Ef3);
+
+    xres = 1080;
+    yres = xres*0.86;
+    closeall;
+    image(ux1,uy1,Ef1/max(Ef1),"","","|E|^2 when width is "+num2str(temp(i)*1e9),"polar");
+    selectfigure(1);
+    pause(3);
+    exportfigure("/home/chencheng/Lumerical/MODE/WG/"+"fig"+filename + num2str(i),xres,yres);
+    
+    T = getresult("T","E");
+    y = T.y;
+    z = T.z;
+    En = T.E2;#En is  near E;
+    image(y,z,En,"","","|E|^2 when width is "+num2str(temp(i)*1e9));
+    selectfigure(2);
+    pause(3);
+    exportfigure("/home/chencheng/Lumerical/MODE/WG/"+"fig_mode_"+filename + num2str(i),xres,yres);
+}
+?"Everything is END!";
