@@ -1,0 +1,71 @@
+## Ring Test
+newproject;
+
+filename = "Ring2";
+#########################################################################################
+# set your file directory
+dir_file = "/8000G/chencheng/Lumerical/Ring_pro/";
+#dir_file = "D:/OneDrive - shanghaitech.edu.cn/Document_software/Lumerical/sweep_test/";
+
+
+w_a = 500e-9;
+h_a = 220e-9;
+
+x0=0;y0=0;z0=0;
+ext_length_x = 8e-6;
+ext_length_y = 8e-6;
+ext_length_z = 8e-6;
+
+mesh_accuracy = 2;
+simulation_time = 5000e-15;
+wl = 1550e-9;
+
+num = 11;
+R_temp  = linspace(31.847e-6,31.9130e-6,num);
+gap = 100e-9;
+
+####################
+#   sweep
+####################
+clearjobs;
+deleteall;
+for(i = 1:num)
+{
+    switchtolayout; deleteall; groupscope("::model");
+    R = R_temp(i);
+    len = 2*R+4e-6;
+    width = 2*R + 2*gap + 4e-6;
+    height = h_a + 4e-6;
+    
+    Body_Ring;
+    save( dir_file + filename + num2str(i) );
+    addjob(currentfilename);
+}
+runjobs;
+
+####################
+#    analysi
+####################
+through_TF = matrix(1,num);
+through_BF = matrix(1,num);
+drop_TF = matrix(1,num);
+drop_BF = matrix(1,num);
+for(i=1:num)
+{
+    mn = "expansion";
+    load( filename + num2str(i));
+    monitor_data = getresult(mn,"expansion for drop");
+    drop_TF(i) = monitor_data.T_forward;
+    drop_BF(i) = monitor_data.T_backward;
+    
+    mn = "expansion2";
+    monitor_data = getresult(mn,"expansion for through");
+    through_TF(i) = monitor_data.T_forward;
+    through_BF(i) = monitor_data.T_backward;
+    
+    matlabsave("Data_Ring",R_temp,through_TF,through_BF,drop_TF,drop_BF);
+}
+plot(R_temp*1e6,drop_BF);
+plot(R_temp*1e6,through_TF);
+
+
